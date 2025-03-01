@@ -5,7 +5,7 @@ on:
     branches:
       - main
     tags:
-      - 'v*.**'
+      - 'v*.*'
 
 jobs:
   build:
@@ -32,5 +32,4 @@ jobs:
           file: ./docker/Dockerfile.restaurant
           platforms: linux/amd64
           push: true
-          target: target
           tags: ${{ vars.DOCKER_USERNAME }}/${{ github.event.repository.name }}:latest
