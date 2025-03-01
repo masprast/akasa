@@ -1,0 +1,161 @@
+#version: '3.9'
+#services:
+#  mysql:
+#    image: mysql
+#    restart: always
+#    ports:
+#      - 3306:3306
+#    environment:
+#      - MYSQL_ROOT_PASSWORD=password
+#    volumes:
+#      - ./restaurant/restaurantDB.txt:/docker-entrypoint-initdb.d/initdb.sql
+#      - mysql-data:/var/lib/mysql
+#  restaurant:
+#    build: .
+#    ports:
+#      - 80:80
+#    depends_on:
+#      - mysql
+#  grafana:
+#    image: grafana/grafana-enterprise
+#    container_name: grafana
+#    restart: unless-stopped
+#    environment:
+#      - GF_SERVER_ROOT_URL=http://my.grafana.server/
+#      - GF_INSTALL_PLUGINS=grafana-enterprise-logs-app
+#    ports:
+#      - 3000:3000
+#    volumes:
+#      - ./data:/var/lib/grafana
+#      - ./logs:/var/log/grafana
+#      - ./grafana.ini:/etc/grafana/grafana.ini
+#
+#volumes:
+#  - mysql-data:
+#
+#networks:
+#  - devops:
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.restaurant
+    ports:
+      - 9000:80
+    environment:
+      DB_HOST: db
+      DB_NAME: restaurantdb
+      DB_USER: root
+      DB_PASS: password
+    depends_on:
+      - db
+    develop:
+      watch:
+        - action: sync
+          path: ./restaurant
+          target: /var/www/html
+
+  db:
+    image: mysql:latest
+    restart: always
+    user: root
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: restaurantdb
+    volumes:
+      - mysql_data:/var/lib/mysql
+    expose:
+      - 3306
+    healthcheck:
+      test: ["CMD",
+          "/usr/local/bin/healthcheck.sh",
+          "--su-mysql",
+          "--connect",
+          "--innodb_initialized",]
+      interval: 1m
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    networks:
+      - backend
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - frontend
+      - backend
+    depends_on:
+      - loki
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /etc/grafana/provisioning/datasources
+        cat <<EOF > /etc/grafana/provisioning/datasources/ds.yaml
+        apiVersion: 1
+        datasources:
+          - name: Loki
+            type: loki
+            access: proxy
+            url: http://loki:3100
+            jsonData:
+              httpHeaderName1: "X-Scope-OrgID"
+            secureJsonData:
+              httpHeaderValue1: "tenant1"
+        EOF
+        /run.sh
+
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki_data:/tmp/loki
+    networks:
+      - backend
+
+volumes:
+  mysql_data:
+  grafana_data:
+  loki_data:
+
+networks:
+  backend:
+  frontend:
+
+# loki
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   environment:
+  #     - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+  #     - GF_AUTH_ANONYMOUS_ENABLED=true
+  #     - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+  #   depends_on:
+  #     - gateway
+  #   entrypoint:
+  #     - sh
+  #     - -euc
+  #     - |
+  #       mkdir -p /etc/grafana/provisioning/datasources
+  #       cat <<EOF > /etc/grafana/provisioning/datasources/ds.yaml
+  #       apiVersion: 1
+  #       datasources:
+  #         - name: Loki
+  #           type: loki
+  #           access: proxy
+  #           url: http://gateway:3100
+  #           jsonData:
+  #             httpHeaderName1: "X-Scope-OrgID"
+  #           secureJsonData:
+  #             httpHeaderValue1: "tenant1"
+  #       EOF
+  #       /run.sh

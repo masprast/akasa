@@ -1,0 +1,81 @@
+# # Project image
+FROM php:7.4-fpm-alpine AS base
+
+# konfigurasi apache2 web server
+# RUN apk add --no-cache openrc apache2  apache2-proxy
+# # RUN openrc
+# RUN rc-update add apache2 default
+# COPY ./conf/httpd.conf /etc/apache2/httpd.conf
+# # COPY ../conf/restaurant.conf /etc/apache2/sites-available/restaurant.conf
+# COPY ./conf/php-fpm.conf /etc/php7/php-fpm.conf
+# COPY ./conf/php7.4.load /etc/apache2/conf.d/php7.4.load
+# COPY ./conf/php7.4.conf /etc/apache2/conf.d/php7.4.conf
+
+# setup host
+# COPY ./conf/setup_host.sh /usr/local/bin/setup_host.sh
+# RUN chmod +x /usr/local/bin/setup_host.sh
+# RUN sh -c /usr/local/bin/setup_host.sh
+
+# COPY ../conf/entrypoint.sh /usr/local/bin/
+# RUN chmod +x /usr/local/bin/entrypoint.sh
+# RUN ln -s /usr/local/bin/entrypoint.sh /
+# RUN mkdir -p /var/www/localhost/restaurant
+# ################################################################
+RUN apk update --no-cache && \
+    apk upgrade --no-cache
+
+FROM base AS build
+
+RUN apk add --no-cache \
+    $PHPIZE_DEPS \
+    linux-headers
+RUN apk add --no-cache \
+    freetype-dev \
+    jpeg-dev \
+    icu-dev \
+    libzip-dev
+
+#####################################
+# PHP Extensions
+#####################################
+# Install the PHP shared memory driver
+RUN pecl install APCu && \
+    docker-php-ext-enable apcu
+
+# Install the PHP extension
+RUN docker-php-ext-install {\
+    bcmath, exif, gd, intl, mysqli, \
+    opcache, pcntl, pdo_mysql, zip \
+    }
+
+# Configure the PHP extention
+RUN docker-php-ext-configure gd \
+    --with-freetype \
+    --with-jpeg && \
+    docker-php-ext-enable mysqli
+
+FROM base as target
+
+#####################################
+# Install necessary libraries
+#####################################
+RUN apk add --no-cache \
+    freetype \
+    jpeg \
+    icu \
+    libzip
+
+#####################################
+# Copy extensions from build stage
+#####################################
+COPY --from=build /usr/local/lib/php/extensions/* /usr/local/lib/php/extensions/
+COPY --from=build /usr/local/etc/php/conf.d/* /usr/local/etc/php/conf.d
+
+# ################################################################
+COPY ./restaurant /var/www/html
+# RUN chown -R apache:apache /var/www/html/restaurant
+# WORKDIR /var/www/html
+# RUN /usr/local/bin/composer init --name restaurant
+# RUN /usr/local/bin/composer install
+
+# CMD [ "service","apache2","restart" ]
