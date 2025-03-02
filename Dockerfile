@@ -6,9 +6,6 @@ RUN apk update --no-cache && \
 FROM base AS build
 
 RUN apk add --no-cache \
-    $PHPIZE_DEPS \
-    linux-headers
-RUN apk add --no-cache \
     freetype-dev \
     jpeg-dev \
     icu-dev \
@@ -22,10 +19,16 @@ RUN pecl install APCu && \
     docker-php-ext-enable apcu
 
 # Install PHP extension
-RUN docker-php-ext-install \
-    bcmath exif gd intl mysqli \
-    opcache pcntl pdo_mysql zip \
+RUN docker-php-ext-install bcmath
+RUN docker-php-ext-install exif
+RUN docker-php-ext-install intl
+RUN docker-php-ext-install mysqli
+RUN docker-php-ext-install opcache
+RUN docker-php-ext-install pcntl
+RUN docker-php-ext-install pdo_mysql
+RUN docker-php-ext-install zip
 
+RUN docker-php-ext-install gd
 # Configure PHP extention
 RUN docker-php-ext-configure gd \
     --with-freetype \
