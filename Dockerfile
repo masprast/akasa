@@ -15,8 +15,9 @@ RUN apk add --no-cache \
 #####################################
 # PHP Extensions
 #####################################
-RUN pecl install apcu memcached && \
-    docker-php-ext-enable apcu memcached
+RUN pecl --help
+# RUN pecl install apcu memcached && \
+#     docker-php-ext-enable apcu memcached
 
 # Install PHP extension
 RUN for ext in "bcmath exif intl mysqli opcache pcntl pdo_mysql zip apcu memcached"; do \
