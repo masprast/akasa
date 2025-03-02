@@ -23,8 +23,8 @@ RUN pecl install APCu && \
 
 # Install PHP extension
 RUN docker-php-ext-install \
-    bcmath, exif, gd, intl, mysqli, \
-    opcache, pcntl, pdo_mysql, zip \
+    bcmath exif gd intl mysqli \
+    opcache pcntl pdo_mysql zip \
 
 # Configure PHP extention
 RUN docker-php-ext-configure gd \
