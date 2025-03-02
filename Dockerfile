@@ -15,7 +15,7 @@ RUN apk add --no-cache \
 # PHP Extensions
 #####################################
 # Install PHP shared memory driver
-RUN pecl install apcu && \
+RUN pecl install -D 'enable-apcu-debug="no"' apcu && \
     docker-php-ext-enable apcu
 
 # Install PHP extension
