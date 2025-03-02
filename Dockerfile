@@ -5,6 +5,7 @@ RUN apk update --no-cache && \
 
 FROM base AS build
 
+RUN chmod +x /usr/local/bin/*
 RUN apk add --no-cache \
     freetype-dev \
     jpeg-dev \
@@ -14,9 +15,11 @@ RUN apk add --no-cache \
 #####################################
 # PHP Extensions
 #####################################
+RUN pecl install apcu memcached && \
+    docker-php-ext-enable apcu memcached
+
 # Install PHP extension
-RUN extensions="bcmath exif intl mysqli opcache pcntl pdo_mysql zip apcu memcached" && \
-    for ext in $extensions; do \
+RUN for ext in "bcmath exif intl mysqli opcache pcntl pdo_mysql zip apcu memcached"; do \
         docker-php-ext-install $ext; \
     done
 
@@ -47,7 +50,6 @@ COPY --from=build /usr/local/lib/php/extensions/* /usr/local/lib/php/extensions/
 COPY --from=build /usr/local/etc/php/conf.d/* /usr/local/etc/php/conf.d
 
 ADD restaurant /var/www/html
-RUN chmod +x /usr/local/bin/*
 WORKDIR /
 #RUN ls /usr/local/bin
 #10 0.052 docker-php-entrypoint
