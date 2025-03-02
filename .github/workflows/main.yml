@@ -37,8 +37,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: ./docker
-          file: ./docker/Dockerfile.restaurant
+          context: .
           platforms: linux/amd64
           push: true
           # tags: ${{ vars.DOCKER_USERNAME }}/${{ github.event.repository.name }}:latest
