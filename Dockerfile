@@ -9,20 +9,13 @@ RUN apk add --no-cache \
     freetype-dev \
     jpeg-dev \
     icu-dev \
-    libzip-dev \
-    pecl
+    libzip-dev
 
 #####################################
 # PHP Extensions
 #####################################
-# Install PHP shared memory driver
-RUN pecl install -D 'enable-apcu-debug="no"' apcu && \
-    pecl install memcached && \
-    docker-php-ext-enable apcu --ini-name docker-php-ext-10-apcu.ini && \
-    docker-php-ext-enable memcached
-
 # Install PHP extension
-RUN extensions="bcmath exif intl mysqli opcache pcntl pdo_mysql zip" && \
+RUN extensions="bcmath exif intl mysqli opcache pcntl pdo_mysql zip apcu memcached" && \
     for ext in $extensions; do \
         docker-php-ext-install $ext; \
     done
