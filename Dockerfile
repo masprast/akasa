@@ -9,7 +9,8 @@ RUN apk add --no-cache \
     freetype-dev \
     jpeg-dev \
     icu-dev \
-    libzip-dev
+    libzip-dev \
+    pecl
 
 #####################################
 # PHP Extensions
