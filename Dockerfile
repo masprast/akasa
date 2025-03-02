@@ -7,7 +7,7 @@ FROM base AS build
 
 RUN apk add --no-cache \
     .build-dependencies \
-    $PHPIZE_DEPS \
+    # $PHPIZE_DEPS \
     freetype-dev \
     jpeg-dev \
     icu-dev \
