@@ -15,7 +15,7 @@ RUN apk add --no-cache \
 #####################################
 # PHP Extensions
 #####################################
-RUN pecl --help
+RUN pecl help
 # RUN pecl install apcu memcached && \
 #     docker-php-ext-enable apcu memcached
 
