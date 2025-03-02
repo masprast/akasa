@@ -20,9 +20,9 @@ RUN pecl --help
 #     docker-php-ext-enable apcu memcached
 
 # Install PHP extension
-RUN for ext in "bcmath exif intl mysqli opcache pcntl pdo_mysql zip apcu memcached"; do \
-        docker-php-ext-install $ext; \
-    done
+COPY ./conf/install-ext.sh /usr/local/bin/install-ext.sh
+RUN chmod +x /usr/local/bin/install-ext.sh
+RUN /usr/local/bin/install-ext.sh
 
 # Configure PHP extention
 RUN docker-php-ext-configure gd \
