@@ -6,8 +6,6 @@ RUN apk update --no-cache && \
 FROM base AS build
 
 RUN apk add --no-cache \
-    .build-dependencies \
-    # $PHPIZE_DEPS \
     freetype-dev \
     jpeg-dev \
     icu-dev \
