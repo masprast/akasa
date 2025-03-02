@@ -6,6 +6,8 @@ RUN apk update --no-cache && \
 FROM base AS build
 
 RUN apk add --no-cache \
+    .build-dependencies \
+    $PHPIZE_DEPS \
     freetype-dev \
     jpeg-dev \
     icu-dev \
@@ -15,25 +17,23 @@ RUN apk add --no-cache \
 # PHP Extensions
 #####################################
 # Install PHP shared memory driver
-RUN pecl install APCu && \
+RUN ls /usr/local/bin
+RUN pecl install apcu && \
     docker-php-ext-enable apcu
 
 # Install PHP extension
-RUN docker-php-ext-install bcmath
-RUN docker-php-ext-install exif
-RUN docker-php-ext-install intl
-RUN docker-php-ext-install mysqli
-RUN docker-php-ext-install opcache
-RUN docker-php-ext-install pcntl
-RUN docker-php-ext-install pdo_mysql
-RUN docker-php-ext-install zip
+RUN extensions="bcmath exif intl mysqli opcache pcntl pdo_mysql zip gd" && \
+    for ext in $extensions; do \
+        docker-php-ext-install $ext; \
+    done
 
-RUN docker-php-ext-install gd
 # Configure PHP extention
 RUN docker-php-ext-configure gd \
     --with-freetype \
     --with-jpeg && \
     docker-php-ext-enable mysqli
+RUN docker-php-ext-configure opcache --enable-opcache
+RUN docker-php-ext-configure intl
 
 FROM base as target
 
