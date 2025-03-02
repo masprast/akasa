@@ -15,14 +15,15 @@ RUN apk add --no-cache \
 #####################################
 # PHP Extensions
 #####################################
-RUN pecl help
-# RUN pecl install apcu memcached && \
-#     docker-php-ext-enable apcu memcached
+RUN pecl install apcu && \
+    docker-php-ext-enable apcu
+RUN pecl install memcached && \
+    docker-php-ext-enable memcached
 
 # Install PHP extension
 COPY ./conf/install-ext.sh /usr/local/bin/install-ext.sh
 RUN chmod +x /usr/local/bin/install-ext.sh
-RUN /usr/local/bin/install-ext.sh
+RUN bash /usr/local/bin/install-ext.sh
 
 # Configure PHP extention
 RUN docker-php-ext-configure gd \
